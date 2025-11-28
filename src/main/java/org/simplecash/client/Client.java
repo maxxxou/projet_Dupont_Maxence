@@ -18,6 +18,9 @@ public class Client {
     private String city;
     private String phone;
 
+    @Enumerated(EnumType.STRING)
+    private ClientType type;
+
     @ManyToOne
     @JoinColumn(name = "advisor_id")
     private Advisor advisor;
@@ -32,6 +35,7 @@ public class Client {
         this.postalCode = postalCode;
         this.city = city;
         this.phone = phone;
+        this.type = ClientType.PERSONAL;
     }
 
     public Long getId() {
@@ -62,6 +66,10 @@ public class Client {
         return phone;
     }
 
+    public ClientType getType() {
+        return type;
+    }
+
     public Advisor getAdvisor() {
         return advisor;
     }
@@ -88,6 +96,10 @@ public class Client {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public void setType(ClientType type) {
+        this.type = type;
     }
 
     public void setAdvisor(Advisor advisor) {

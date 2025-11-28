@@ -42,11 +42,17 @@ public class ClientService {
                 request.city(),
                 request.phone()
         );
+
+        if (request.clientType() != null) {
+            client.setType(request.clientType());
+        }
+
         if (request.advisorId() != null) {
             Advisor advisor = advisorRepository.findById(request.advisorId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Advisor not found"));
             client.setAdvisor(advisor);
         }
+
         Client saved = repository.save(client);
         return toResponse(saved);
     }
@@ -61,6 +67,10 @@ public class ClientService {
         client.setPostalCode(request.postalCode());
         client.setCity(request.city());
         client.setPhone(request.phone());
+
+        if (request.clientType() != null) {
+            client.setType(request.clientType());
+        }
 
         if (request.advisorId() != null) {
             Advisor advisor = advisorRepository.findById(request.advisorId())
@@ -83,6 +93,7 @@ public class ClientService {
 
     private ClientResponse toResponse(Client client) {
         Long advisorId = client.getAdvisor() != null ? client.getAdvisor().getId() : null;
+        ClientType type = client.getType();
         return new ClientResponse(
                 client.getId(),
                 client.getLastName(),
@@ -91,7 +102,8 @@ public class ClientService {
                 client.getPostalCode(),
                 client.getCity(),
                 client.getPhone(),
-                advisorId
+                advisorId,
+                type
         );
     }
 }

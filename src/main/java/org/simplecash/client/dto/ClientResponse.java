@@ -1,5 +1,7 @@
 package org.simplecash.client.dto;
 
+import org.simplecash.client.ClientType;
+
 public record ClientResponse(
         Long id,
         String lastName,
@@ -8,6 +10,7 @@ public record ClientResponse(
         String postalCode,
         String city,
         String phone,
-        Long advisorId
+        Long advisorId,
+        ClientType clientType
 ) {
 }
