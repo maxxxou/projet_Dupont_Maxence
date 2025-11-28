@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
+
 @Service
 public class TransferService {
 
@@ -29,7 +31,17 @@ public class TransferService {
     @Transactional
     public TransferResponse transfer(TransferRequest request) {
         if (request.fromAccountId().equals(request.toAccountId())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Source and destination accounts must be different");
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Source and destination accounts must be different"
+            );
+        }
+
+        if (request.amount() == null || request.amount().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Transfer amount must be greater than zero"
+            );
         }
 
         Account fromAccount = accountRepository.findById(request.fromAccountId())

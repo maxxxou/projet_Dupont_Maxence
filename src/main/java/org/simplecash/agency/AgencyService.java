@@ -2,6 +2,8 @@ package org.simplecash.agency;
 
 import org.simplecash.agency.dto.AgencyRequest;
 import org.simplecash.agency.dto.AgencyResponse;
+import org.simplecash.advisor.AdvisorRepository;
+import org.simplecash.client.ClientRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -14,10 +16,17 @@ public class AgencyService {
 
     private final AgencyRepository agencyRepository;
     private final ManagerRepository managerRepository;
+    private final AdvisorRepository advisorRepository;
+    private final ClientRepository clientRepository;
 
-    public AgencyService(AgencyRepository agencyRepository, ManagerRepository managerRepository) {
+    public AgencyService(AgencyRepository agencyRepository,
+                         ManagerRepository managerRepository,
+                         AdvisorRepository advisorRepository,
+                         ClientRepository clientRepository) {
         this.agencyRepository = agencyRepository;
         this.managerRepository = managerRepository;
+        this.advisorRepository = advisorRepository;
+        this.clientRepository = clientRepository;
     }
 
     public List<AgencyResponse> getAll() {
@@ -66,10 +75,20 @@ public class AgencyService {
     }
 
     public void delete(Long id) {
-        if (!agencyRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Agency not found");
+        Agency agency = agencyRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agency not found"));
+
+        long advisorCount = advisorRepository.countByAgencyId(id);
+        long clientCount = clientRepository.countByAgencyId(id);
+
+        if (advisorCount > 0 || clientCount > 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Agency cannot be deleted while having advisors or clients"
+            );
         }
-        agencyRepository.deleteById(id);
+
+        agencyRepository.delete(agency);
     }
 
     private AgencyResponse toResponse(Agency agency) {

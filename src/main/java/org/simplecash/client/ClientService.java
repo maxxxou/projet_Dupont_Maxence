@@ -1,5 +1,7 @@
 package org.simplecash.client;
 
+import org.simplecash.account.Account;
+import org.simplecash.account.AccountRepository;
 import org.simplecash.advisor.Advisor;
 import org.simplecash.advisor.AdvisorRepository;
 import org.simplecash.agency.Agency;
@@ -10,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -18,13 +21,16 @@ public class ClientService {
     private final ClientRepository clientRepository;
     private final AdvisorRepository advisorRepository;
     private final AgencyRepository agencyRepository;
+    private final AccountRepository accountRepository;
 
     public ClientService(ClientRepository clientRepository,
                          AdvisorRepository advisorRepository,
-                         AgencyRepository agencyRepository) {
+                         AgencyRepository agencyRepository,
+                         AccountRepository accountRepository) {
         this.clientRepository = clientRepository;
         this.advisorRepository = advisorRepository;
         this.agencyRepository = agencyRepository;
+        this.accountRepository = accountRepository;
     }
 
     public List<ClientResponse> getAll() {
@@ -103,6 +109,29 @@ public class ClientService {
         return toResponse(saved);
     }
 
+    public void delete(Long id) {
+        Client client = clientRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found"));
+
+        List<Account> accounts = accountRepository.findByClientId(id);
+
+        boolean hasNonZeroBalance = accounts.stream()
+                .anyMatch(a -> a.getBalance().compareTo(BigDecimal.ZERO) != 0);
+
+        if (hasNonZeroBalance) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Client has accounts with non-zero balance"
+            );
+        }
+
+        if (!accounts.isEmpty()) {
+            accountRepository.deleteAll(accounts);
+        }
+
+        clientRepository.delete(client);
+    }
+
     private ClientResponse toResponse(Client client) {
         Long agencyId = client.getAgency() != null ? client.getAgency().getId() : null;
         Long advisorId = client.getAdvisor() != null ? client.getAdvisor().getId() : null;
@@ -119,12 +148,5 @@ public class ClientService {
                 advisorId,
                 client.getType()
         );
-    }
-
-    public void delete(Long id) {
-        if (!clientRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
-        }
-        clientRepository.deleteById(id);
     }
 }

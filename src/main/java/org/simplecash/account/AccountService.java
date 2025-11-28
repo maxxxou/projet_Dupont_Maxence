@@ -68,7 +68,9 @@ public class AccountService {
         BigDecimal newBalance = account.getBalance().subtract(request.amount());
 
         if (account.getType() == AccountType.CURRENT) {
-            BigDecimal limit = account.getOverdraftLimit() != null ? account.getOverdraftLimit() : Account.DEFAULT_OVERDRAFT_LIMIT;
+            BigDecimal limit = account.getOverdraftLimit() != null
+                    ? account.getOverdraftLimit()
+                    : Account.DEFAULT_OVERDRAFT_LIMIT;
             BigDecimal minAllowed = limit.negate();
             if (newBalance.compareTo(minAllowed) < 0) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Overdraft limit exceeded");
@@ -82,6 +84,21 @@ public class AccountService {
         account.setBalance(newBalance);
         Account saved = accountRepository.save(account);
         return toResponse(saved);
+    }
+
+    @Transactional
+    public void delete(Long accountId) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Account not found"));
+
+        if (account.getBalance().compareTo(BigDecimal.ZERO) != 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Account balance must be zero to close account"
+            );
+        }
+
+        accountRepository.delete(account);
     }
 
     private AccountResponse toResponse(Account account) {
