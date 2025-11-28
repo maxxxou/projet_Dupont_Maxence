@@ -56,7 +56,6 @@ VALUES
 
 -- Transfers
 INSERT INTO transfers (
-    id,
     amount,
     label,
     executed_at,
@@ -64,6 +63,6 @@ INSERT INTO transfers (
     to_account_id
 )
 VALUES
-    (1, 200.00, 'Virement loyer',      '2024-04-01T10:00:00', 1, 3),
-    (2, 150.00, 'Virement épargne',    '2024-04-05T09:30:00', 1, 2),
-    (3, 500.00, 'Règlement fournisseur', '2024-04-10T14:15:00', 4, 1);
+    (200.00, 'Virement loyer',        '2024-04-01T10:00:00', 1, 3),
+    (150.00, 'Virement épargne',      '2024-04-05T09:30:00', 1, 2),
+    (500.00, 'Règlement fournisseur', '2024-04-10T14:15:00', 4, 1);
