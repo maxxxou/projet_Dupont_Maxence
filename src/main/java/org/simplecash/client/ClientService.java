@@ -1,5 +1,7 @@
 package org.simplecash.client;
 
+import org.simplecash.advisor.Advisor;
+import org.simplecash.advisor.AdvisorRepository;
 import org.simplecash.client.dto.ClientRequest;
 import org.simplecash.client.dto.ClientResponse;
 import org.springframework.http.HttpStatus;
@@ -12,9 +14,11 @@ import java.util.List;
 public class ClientService {
 
     private final ClientRepository repository;
+    private final AdvisorRepository advisorRepository;
 
-    public ClientService(ClientRepository repository) {
+    public ClientService(ClientRepository repository, AdvisorRepository advisorRepository) {
         this.repository = repository;
+        this.advisorRepository = advisorRepository;
     }
 
     public List<ClientResponse> getAll() {
@@ -38,6 +42,11 @@ public class ClientService {
                 request.city(),
                 request.phone()
         );
+        if (request.advisorId() != null) {
+            Advisor advisor = advisorRepository.findById(request.advisorId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Advisor not found"));
+            client.setAdvisor(advisor);
+        }
         Client saved = repository.save(client);
         return toResponse(saved);
     }
@@ -53,6 +62,14 @@ public class ClientService {
         client.setCity(request.city());
         client.setPhone(request.phone());
 
+        if (request.advisorId() != null) {
+            Advisor advisor = advisorRepository.findById(request.advisorId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Advisor not found"));
+            client.setAdvisor(advisor);
+        } else {
+            client.setAdvisor(null);
+        }
+
         Client saved = repository.save(client);
         return toResponse(saved);
     }
@@ -65,6 +82,7 @@ public class ClientService {
     }
 
     private ClientResponse toResponse(Client client) {
+        Long advisorId = client.getAdvisor() != null ? client.getAdvisor().getId() : null;
         return new ClientResponse(
                 client.getId(),
                 client.getLastName(),
@@ -72,7 +90,8 @@ public class ClientService {
                 client.getAddress(),
                 client.getPostalCode(),
                 client.getCity(),
-                client.getPhone()
+                client.getPhone(),
+                advisorId
         );
     }
 }

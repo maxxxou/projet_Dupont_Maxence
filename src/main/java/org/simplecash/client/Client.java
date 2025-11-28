@@ -1,10 +1,7 @@
 package org.simplecash.client;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import org.simplecash.advisor.Advisor;
 
 @Entity
 @Table(name = "clients")
@@ -20,6 +17,10 @@ public class Client {
     private String postalCode;
     private String city;
     private String phone;
+
+    @ManyToOne
+    @JoinColumn(name = "advisor_id")
+    private Advisor advisor;
 
     protected Client() {
     }
@@ -61,6 +62,10 @@ public class Client {
         return phone;
     }
 
+    public Advisor getAdvisor() {
+        return advisor;
+    }
+
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
@@ -83,5 +88,9 @@ public class Client {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public void setAdvisor(Advisor advisor) {
+        this.advisor = advisor;
     }
 }

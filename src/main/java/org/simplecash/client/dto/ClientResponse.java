@@ -7,6 +7,7 @@ public record ClientResponse(
         String address,
         String postalCode,
         String city,
-        String phone
+        String phone,
+        Long advisorId
 ) {
 }

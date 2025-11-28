@@ -9,6 +9,7 @@ public record ClientRequest(
         @NotBlank String address,
         @NotBlank @Size(min = 5, max = 5) String postalCode,
         @NotBlank String city,
-        String phone
+        String phone,
+        Long advisorId
 ) {
 }
