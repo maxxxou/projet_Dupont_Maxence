@@ -2,6 +2,8 @@ package org.simplecash.client;
 
 import org.simplecash.advisor.Advisor;
 import org.simplecash.advisor.AdvisorRepository;
+import org.simplecash.agency.Agency;
+import org.simplecash.agency.AgencyRepository;
 import org.simplecash.client.dto.ClientRequest;
 import org.simplecash.client.dto.ClientResponse;
 import org.springframework.http.HttpStatus;
@@ -13,27 +15,40 @@ import java.util.List;
 @Service
 public class ClientService {
 
-    private final ClientRepository repository;
+    private final ClientRepository clientRepository;
     private final AdvisorRepository advisorRepository;
+    private final AgencyRepository agencyRepository;
 
-    public ClientService(ClientRepository repository, AdvisorRepository advisorRepository) {
-        this.repository = repository;
+    public ClientService(ClientRepository clientRepository,
+                         AdvisorRepository advisorRepository,
+                         AgencyRepository agencyRepository) {
+        this.clientRepository = clientRepository;
         this.advisorRepository = advisorRepository;
+        this.agencyRepository = agencyRepository;
     }
 
     public List<ClientResponse> getAll() {
-        return repository.findAll().stream()
+        return clientRepository.findAll().stream()
                 .map(this::toResponse)
                 .toList();
     }
 
     public ClientResponse getById(Long id) {
-        Client client = repository.findById(id)
+        Client client = clientRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found"));
         return toResponse(client);
     }
 
     public ClientResponse create(ClientRequest request) {
+        Agency agency = agencyRepository.findById(request.agencyId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Agency not found"));
+
+        Advisor advisor = null;
+        if (request.advisorId() != null) {
+            advisor = advisorRepository.findById(request.advisorId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Advisor not found"));
+        }
+
         Client client = new Client(
                 request.lastName(),
                 request.firstName(),
@@ -43,23 +58,32 @@ public class ClientService {
                 request.phone()
         );
 
+        client.setAgency(agency);
+
         if (request.clientType() != null) {
             client.setType(request.clientType());
         }
 
-        if (request.advisorId() != null) {
-            Advisor advisor = advisorRepository.findById(request.advisorId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Advisor not found"));
+        if (advisor != null) {
             client.setAdvisor(advisor);
         }
 
-        Client saved = repository.save(client);
+        Client saved = clientRepository.save(client);
         return toResponse(saved);
     }
 
     public ClientResponse update(Long id, ClientRequest request) {
-        Client client = repository.findById(id)
+        Client client = clientRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found"));
+
+        Agency agency = agencyRepository.findById(request.agencyId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Agency not found"));
+
+        Advisor advisor = null;
+        if (request.advisorId() != null) {
+            advisor = advisorRepository.findById(request.advisorId())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Advisor not found"));
+        }
 
         client.setLastName(request.lastName());
         client.setFirstName(request.firstName());
@@ -67,33 +91,22 @@ public class ClientService {
         client.setPostalCode(request.postalCode());
         client.setCity(request.city());
         client.setPhone(request.phone());
+        client.setAgency(agency);
 
         if (request.clientType() != null) {
             client.setType(request.clientType());
         }
 
-        if (request.advisorId() != null) {
-            Advisor advisor = advisorRepository.findById(request.advisorId())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Advisor not found"));
-            client.setAdvisor(advisor);
-        } else {
-            client.setAdvisor(null);
-        }
+        client.setAdvisor(advisor);
 
-        Client saved = repository.save(client);
+        Client saved = clientRepository.save(client);
         return toResponse(saved);
     }
 
-    public void delete(Long id) {
-        if (!repository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
-        }
-        repository.deleteById(id);
-    }
-
     private ClientResponse toResponse(Client client) {
+        Long agencyId = client.getAgency() != null ? client.getAgency().getId() : null;
         Long advisorId = client.getAdvisor() != null ? client.getAdvisor().getId() : null;
-        ClientType type = client.getType();
+
         return new ClientResponse(
                 client.getId(),
                 client.getLastName(),
@@ -102,8 +115,16 @@ public class ClientService {
                 client.getPostalCode(),
                 client.getCity(),
                 client.getPhone(),
+                agencyId,
                 advisorId,
-                type
+                client.getType()
         );
+    }
+
+    public void delete(Long id) {
+        if (!clientRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
+        }
+        clientRepository.deleteById(id);
     }
 }

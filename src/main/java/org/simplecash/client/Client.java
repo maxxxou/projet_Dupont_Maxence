@@ -2,6 +2,7 @@ package org.simplecash.client;
 
 import jakarta.persistence.*;
 import org.simplecash.advisor.Advisor;
+import org.simplecash.agency.Agency;
 
 @Entity
 @Table(name = "clients")
@@ -24,6 +25,10 @@ public class Client {
     @ManyToOne
     @JoinColumn(name = "advisor_id")
     private Advisor advisor;
+
+    @ManyToOne
+    @JoinColumn(name = "agency_id", nullable = false)
+    private Agency agency;
 
     protected Client() {
     }
@@ -74,6 +79,10 @@ public class Client {
         return advisor;
     }
 
+    public Agency getAgency() {
+        return agency;
+    }
+
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
@@ -104,5 +113,9 @@ public class Client {
 
     public void setAdvisor(Advisor advisor) {
         this.advisor = advisor;
+    }
+
+    public void setAgency(Agency agency) {
+        this.agency = agency;
     }
 }

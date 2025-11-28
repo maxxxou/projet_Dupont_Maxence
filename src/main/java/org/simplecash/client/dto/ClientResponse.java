@@ -10,6 +10,7 @@ public record ClientResponse(
         String postalCode,
         String city,
         String phone,
+        Long agencyId,
         Long advisorId,
         ClientType clientType
 ) {

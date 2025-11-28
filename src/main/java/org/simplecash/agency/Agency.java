@@ -1,8 +1,11 @@
 package org.simplecash.agency;
 
 import jakarta.persistence.*;
+import org.simplecash.advisor.Advisor;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "agencies")
@@ -20,6 +23,9 @@ public class Agency {
     @OneToOne
     @JoinColumn(name = "manager_id")
     private Manager manager;
+
+    @OneToMany(mappedBy = "agency")
+    private List<Advisor> advisors = new ArrayList<>();
 
     protected Agency() {
     }
@@ -44,6 +50,10 @@ public class Agency {
 
     public Manager getManager() {
         return manager;
+    }
+
+    public List<Advisor> getAdvisors() {
+        return advisors;
     }
 
     public void setCode(String code) {

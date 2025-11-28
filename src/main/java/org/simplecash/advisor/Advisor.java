@@ -1,10 +1,7 @@
 package org.simplecash.advisor;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
+import org.simplecash.agency.Agency;
 
 @Entity
 @Table(name = "advisors")
@@ -17,12 +14,17 @@ public class Advisor {
     private String lastName;
     private String firstName;
 
+    @ManyToOne
+    @JoinColumn(name = "agency_id", nullable = false)
+    private Agency agency;
+
     protected Advisor() {
     }
 
-    public Advisor(String lastName, String firstName) {
+    public Advisor(String lastName, String firstName, Agency agency) {
         this.lastName = lastName;
         this.firstName = firstName;
+        this.agency = agency;
     }
 
     public Long getId() {
@@ -37,11 +39,19 @@ public class Advisor {
         return firstName;
     }
 
+    public Agency getAgency() {
+        return agency;
+    }
+
     public void setLastName(String lastName) {
         this.lastName = lastName;
     }
 
     public void setFirstName(String firstName) {
         this.firstName = firstName;
+    }
+
+    public void setAgency(Agency agency) {
+        this.agency = agency;
     }
 }
