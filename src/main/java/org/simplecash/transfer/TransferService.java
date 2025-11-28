@@ -39,8 +39,8 @@ public class TransferService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Destination account not found"));
 
         AmountRequest amountRequest = new AmountRequest(request.amount());
-        accountService.debit(fromAccount.getId(), amountRequest);
-        accountService.credit(toAccount.getId(), amountRequest);
+        accountService.debit(request.fromAccountId(), amountRequest);
+        accountService.credit(request.toAccountId(), amountRequest);
 
         Transfer transfer = new Transfer(fromAccount, toAccount, request.amount(), request.label());
         Transfer saved = transferRepository.save(transfer);
